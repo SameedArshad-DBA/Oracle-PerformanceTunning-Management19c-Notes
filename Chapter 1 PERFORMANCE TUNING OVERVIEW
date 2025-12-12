@@ -1,0 +1,54 @@
+Oracle 19c PERFORMANCE MANAGEMENT AND TUNING:
+============================================
+
+CHAPTER #1: PERFORMANCE TUNING OVERVIEW
+---------------------------------------
+
+The starting point of performance tuning is to know the behaviour of your environment during the off peak and peak hours.
+Peak hours depends on the nature of the application.
+An ideal baseline should gather things like:
+Application Statistics (number of transaction volumes, response time)
+Database statistics, Operating System Statistics, Disk I/O Statistics,Network Statistics)
+
+A common pitfall in performance tuning is to mistake the symptoms of a problem for
+the actual problem itself.
+
+Slow data doesn't only mean to only check the query plan, you should also check the disk I/O statistics
+
+Q1. When to tune?
+Proactive Monitoring
+Bottleneck Elimination
+
+Proactive Monitoring:
+---------------------
+Usually, monitoring does not result in configuration changes to the system, unless the monitoring exposes a serious problem that is developing.
+In some situations, experienced performance engineers can identify potential problems through statistics alone, although accompanying performance degradation is usual.
+Experimenting with or tweaking a system when there is no apparent performance degradation as a proactive action can be a dangerous activity, resulting in unnecessary performance drops.
+
+Bottleneck Elimination:
+-----------------------
+
+Tuning should be part of the life cycle of an application—through the analysis, design, coding, production, and maintenance stages. The tuning part is neglected, leading to only fix the bottleneck when it occurs. 
+Usually, the purpose for tuning is to reduce resource consumption or to reduce the  elapsed time for an operation to complete.
+Changes in the application or the way it is being used, changes in oracle, changes in the hardware configuration, are the places that can lead to fixture to the issue.
+
+Q2. Why there is need to tune SQL Statements:
+End-Users consider SQL a messaging language, because queries are issued and data is returned. However, client tools often generate inefficient SQL statements.
+Don't use your OLTP as an OLAP environment.
+
+Q3. Who is Query Optimizer?
+the query optimizer reviews statistics gathered on the system to determine the best data access path and other considerations. You can override the execution plan of the query optimizer with hints inserted in SQL statement.
+
+The default setting of TYPICAL ensures collection of all major statistics required for database self-management functionality and provides best overall performance. The default value should be adequate for most environments.
+When the STATISTICS_LEVEL parameter is set to ALL, additional statistics are added to the set of statistics collected with the TYPICAL setting. The additional statistics are timed operating system statistics and plan execution statistics.
+
+Q4. What are the features of Automatic Performance Tuning?
+AWR: collects, processes, and maintains performance statistics
+ADDM: analyzes the information collected by AWR for possible performance problems
+SQL Tuning Advisor:  allows a quick and efficient technique for optimizing SQL statements without modifying any statements
+SQL Acess Advisor: advice on retention or deletion of materialized views, indexes, and materialized view logs
+End-to-End Application Tracing: Will explore
+Server Generated Alerts: (DBMS_SERVER_ALERT)
+Additional advisors of EM Cloud Control: Memory advisors to optimize memory for an instance. 
+Database Performance page in Cloud Control: Displays host, instance service time, and throughput information for real time monitoring and diagnosis.
+V$ Performance Views:V$ views are based on memory structures initialized at instance startup.
