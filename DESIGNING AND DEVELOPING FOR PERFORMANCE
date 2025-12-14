@@ -1,0 +1,237 @@
+Oracle 19 PERFORMANCE MANAGEMENT AND TUNING:
+============================================
+
+CHAPTER #2: DESIGNING AND DEVELOPING FOR PERFORMANCE
+----------------------------------------------------
+
+The cost of re-designing a system with the associated downtime costs in migrating to new implementations exceeds the costs of properly building the original system. 
+The moral of the story is simple: design and implement with scalability in mind from the start.
+
+Scalability is a system's ability to process more workload, with a proportional increase in system resource usage.
+
+Examples of poor scalability due to resource conflicts include the following:
+• Applications requiring significant concurrency management as user populations
+increase
+• Increased locking activities
+• Increased data consistency workload
+• Increased operating system workload
+• Transactions requiring increases in data access as data volumes increase
+• Poor SQL and index design resulting in a higher number of logical I/Os for the same number of rows returned
+• Reduced availability, because database objects take longer to maintain
+
+An application is said to be unscalable if it exhausts a system resource to the point
+where no more throughput is possible when its workload is increased. Such
+applications result in fixed throughputs and poor response times.
+
+Examples of resource exhaustion include the following:
+• Hardware exhaustion
+• Table scans in high-volume transactions causing inevitable disk I/O shortages
+• Excessive network requests, resulting in network and scheduling bottlenecks
+• Memory allocation causing paging and swapping
+• Excessive process and thread allocation causing operating system thrashing
+
+Q1. What are the factors that prevent the scalability?
+System Performance = Time (X-axis) + Hardware Scalability (Y-axis) + Software scalability (Z-Axis)
+
+Inorder to achieve the liner (perfect) scability the software scability should be close to zero. Meaning that the software scability cost (man effort) should be minimum.
+
+Factors that may prevent linear scalability include:
+- Poor schema design can cause expensive SQL that do not scale.
+– Poor transaction design can cause locking and serialization problems.
+– Poor connection management can cause poor response times and unreliable systems
+– Systems can move to production environments with bad I/O strategies.
+– The production environment could might different execution plans from those generated in testing.
+– Memory-intensive applications that allocate a large amount of memory without much thought for freeing the memory at run time can cause excessive memory usage.
+– Inefficient memory usage and memory leaks put a high stress on the operating virtual memory subsystem. This impacts performance and availability.
+- Incorrect sizing of hardware components
+- Limitations of software components
+- Limitations of hardware components
+
+Q2. What are the components of System Architecture?
+System Architecture= Hardware components (CPU+ Memory+ I/O Subsystem+ network) + software components + Configure right system architecture according to your requirement
+
+Software Components:
+- User Interface
+- Business Logic: Common functions of this component include:
+	• Moving a data model to a relational table structure
+	• Defining constraints in the relational table structure
+	• Coding procedural logic to implement business rules
+- Resorces for Managing User Requests:Common functions of this component include:
+	• Connection management with the database
+	• Executing SQL efficiently (cursors and SQL sharing)
+	• Managing client state information
+	• Balancing the load of user requests across hardware resources
+	• Setting operational targets for hardware and software components
+	• Persistent queuing for asynchronous execution of task
+- Data and Transactions:Common functions of this component include:
+	• Providing concurrent access to data using locks and transactional semantics
+	• Providing optimized access to the data using indexes and memory cache
+	• Ensuring that data changes are logged in the event of a hardware failure
+	• Enforcing any rules defined for the data
+
+Configuring the Right System Architecture for Your Requirements:
+The following questions should stimulate thought on system architecture:
+How many users must the system support?
+What will be the user interaction method?
+Where are the users located?
+What is the network speed?
+How much data will the user access, and how much of that data is largely read only?
+What is the user response time requirement?
+Do users expect 24 hour service?
+Must all changes be made in real time?
+How big will the database be?
+What is the required throughput of business transactions?
+What are the availability requirements?
+Do skills exist to build and administer this application?
+What compromises are forced by budget constraints?
+
+Q3. What are the application design principles?
+Simplicity In Application Design:Consider the following design issues:
+	• If the table design is so complicated that nobody can fully understand it, then the table is probably poorly designed.
+	• If SQL statements are so long and involved that it would be impossible for any optimizer to effectively optimize it in real time, then there is probably a bad statement, underlying transaction, or table design.
+	• If there are indexes on a table and the same columns are repeatedly indexed, then there is probably a poor index design.
+	• If queries are submitted without suitable qualification for rapid response for online users, then there is probably a poor user interface or transaction design.
+	• If the calls to the database are abstracted away from the application logic by many layers of software, then there is probably a bad software development method.
+
+Data Modeling: The important thing is to apply greatest modeling efforts to those entities affected by the most frequent business transactions.
+
+Table and Index Design: 
+The table design should be very similar to the data model, and it should be normalized to at least 3rd normal form.
+
+Appending Columns to an Index or Using Index-Organized Tables:
+One of the easiest ways to speed up a query is to reduce the number of logical I/Os by eliminating a table access from the execution plan. This can be done by appending to the index all columns referenced by the query.
+The most aggressive form of this technique is to build an index-organized table (IOT). However, you must be careful that the increased leaf size of an IOT does not undermine the efforts to reduce I/O.
+
+Q4. What are the Different Index Type?
+
+B-Tree Indexes:
+---------------
+These indexes are the standard index type, and they are excellent for primary key and
+highly-selective indexes. Used as concatenated indexes, the database can use B-tree
+indexes to retrieve data sorted by the index columns.
+
+Bitmap Indexes:
+---------------
+These indexes are suitable for columns that have a relatively low number of distinct values, where the benefit of adding a B-tree index is likely to be limited. These indexes are suitable for data warehousing applications where there is low DML activity and ad hoc filtering patterns. Combining bitmap indexes on columns allows efficient AND and OR operations with minimal I/O. Further, through compression techniques they can generate a large number of rowids with minimal I/Os. Bitmap indexes are particularly efficient in queries with COUNT(), because the query can be satisfied within the index.
+
+Function-based Indexes:
+-----------------------
+These indexes allow access through a B-tree on a value derived from a function on the base data. Function-based indexes have some limitations with regards to the use of nulls, and they require that you have the query optimizer enabled. 
+Function-based indexes are particularly useful when querying on composite columns to produce a derived result or to overcome limitations in the way data is stored in the database.
+
+Partitioned Indexes:
+--------------------
+Partitioning a global index allows partition pruning to take place within an index access, which results in reduced I/Os. By definition of good range or list partitioning, fast index scans of the correct index partitions can result in very fast query times.
+
+Reverse Key Indexes:
+--------------------
+These indexes are designed to eliminate index hot spots on insert applications. These indexes are excellent for insert performance, but they are limited because the database cannot use them for index range scans.
+
+Q5. How to find the Cost of an Index?
+Building and maintaining an index structure can be expensive, and it can consume
+resources such as disk space, CPU, and I/O capacity.
+
+Use this simple estimation guide for the cost of index maintenance: each index maintained by an INSERT, DELETE, or UPDATE of the indexed keys requires about three times as much resource as the actual DML operation on the table. Thus, if you INSERT into a table with three indexes, then the insertion is approximately 10 times slower than an INSERT into a table with no indexes. For DML, and particularly for INSERT heavy applications, the index design should be seriously reviewed, which might require a compromise between the query and INSERT performance.
+
+Serializing within Indexes:
+---------------------------
+Use of sequences or timestamps to generate key values that are indexed themselves can lead to database hotspot problems, which affect response time and throughput. This is usually the result of a monotonically growing key that results in a right-growing index. To avoid this problem, try to generate keys that insert over the full range of the index so as to make a workload more scalable. 
+The solutions can be: 
+• using a reverse key index
+• using a hash partitioned index
+• using a cycling sequence to prefix sequence values
+• using a scalable sequence
+
+Ordering Columns in an Index:
+-----------------------------
+Two ways to order the keys in an index:
+1. Order columns with most selectivity first.
+2. Sorted data has more priority.
+
+Using Views:
+------------
+
+Views can speed up and simplify application design. A simple view definition can mask data model complexity from the programmers whose priorities are to retrieve, display, collect, and store data.
+However, while views provide clean programming interfaces, they can cause sub-optimal, resource-intensive queries.
+
+SQL Execution Efficiency:
+-------------------------
+Good database connection management: Connecting to the database is an expensive operation that is highly unscalable. Therefore, the number of concurrent connections to the database should be minimized as much as possible. With these types of applications, design efforts should ensure that database connections are pooled and are not reestablished for each user request.
+
+Good cursor usage and management: Parsing includes interpreting SQL statements and creating execution plan. Hard parsing (resource-intensive) is SQL submitted first time and no match is found in shared pool. Soft Parsing is SQL statement match is found in shared pool. Application should be designed in such a way that once a SQL statement is executed once it will be executed in future whenever the SQL statement reoccurs. This is done through cursors. Application should use bind variables so that the SQL execution plan can be re-used.
+
+Implementing the application:
+-----------------------------
+1. Developement Environment:
+If the software components limit your design for performance decisions, then you probably chose the wrong language or environment.
+	User Interface:> The development method should focus on response time of the user interface code. If HTML or Java is being sent over a network, then try to minimize network volume and interactions.
+	Business Logic:> Java and PL/SQL, are ideal to encode business logic. Both languages are syntactically rich to allow code that is easy to read and interpret.
+	User requests and resource allocation:> tools and fourth generation languages that mask database connection and cursor management might use inefficient mechanisms.
+	Data management and transactions:> Not affected by programming language if you have the required skillsets.
+
+2. When implementing a software component, implement its function and not the
+functionality. 
+
+3. Do not leave gaps in functionality or have software components under-researched in design, implementation, or testing. Data archival and purge modules are most frequently neglected during initial system design, build, and implementation.
+
+4. When implementing procedural logic, implement in a procedural language, such as C, Java, or PL/SQL. When implementing data access (queries) or data changes (DML), use SQL. There is great temptation to put procedural logic into the SQL access. This tends to result in poor SQL that is resource-intensive. SQL statements with DECODE case statements are very often candidates for optimization, as are statements with a large amount of OR predicates or set operators, such as UNION and MINUS.
+
+5. Cache frequently accessed, rarely changing data that is expensive to retrieve on a repeated basis.
+
+6. Optimize the interfaces between components, and ensure that all components are used in the most scalable configuration.
+
+7. Use foreign key references.  The foreign key constraint enforcement supplied by Oracle—which does not use SQL—is fast, easy to declare, and does not create network traffic.
+
+8. Consider setting up action and module names in the application to use with End to End Application Tracing.
+
+Sizing Data:
+------------
+When the system becomes operational, it becomes more difficult to predict database growth, especially for indexes. Tables grow over time, and indexes are subject to the individual behavior of the application in terms of key generation, insertion pattern, and deletion of rows. The worst case is where you insert using an ascending key, and then delete most rows from the left-hand side but not all the rows. This leaves gaps and wasted space. If you have index use like this, then ensure that you know how to use the online index rebuild facility.
+
+Estimating Workloads:
+---------------------
+Extrapolating From a Similar System:> This is an entirely empirical approach where an existing system of similar characteristics and known performance is used as a basis system.
+This approach is used in nearly all large engineering disciplines when preparing the cost of an engineering project, such as a large building, a ship, a bridge, or an oil rig.
+
+Benchmarking:> . By simulating an application in early development or prototype form, there is a danger of measuring something that has no resemblance to the actual production system. 
+This sounds strange, but over the many years of benchmarking customer applications with the database development organization, Oracle has yet to see reliable correlation between the benchmark application and the actual production system.
+Benchmarks by their nature stress all system components to their limits. Benchmarks
+also test database, operating system, and hardware components. 
+
+Application Modeling:
+---------------------
+Both methods have merit, with one attempting to be very precise and the other making gross estimates. The whole estimation process makes no allowances for application inefficiencies introduced by poor SQL, index design, or cursor management. 
+
+Testing, Debugging, and Validating a Design:
+--------------------------------------------
+Use the Automatic Database Diagnostic Monitor (ADDM) and SQL Tuning Advisor for design validation.
+Test with realistic data volumes and distributions.
+Use the correct optimizer mode.
+Test a single user performance.
+Obtain and document plans for all SQL statements.
+Attempt multiuser testing.
+Test with the correct hardware configuration.
+Measure steady state performance.
+
+Deploying New Applications:
+===========================
+When new applications are rolled out, two strategies are commonly adopted:
+
+• Big Bang approach - all users migrate to the new system at once
+• Trickle approach - users slowly migrate from existing systems to the new one
+
+Both approaches have merits and disadvantages. The Big Bang approach relies on reliable testing of the application at the required scale, but has the advantage of minimal data conversion and synchronization with the old system, because it is simply switched off. The Trickle approach allows debugging of scalability issues as the workload increases, but might mean that data must be migrated to and from legacy systems as the transition takes place.
+
+PERFORMANCE CHECKLISTS:
+=======================
+1. When you create the control file for the production database, allow for growth by setting MAXINSTANCES, MAXDATAFILES, MAXLOGFILES, MAXLOGMEMBERS, and MAXLOGHISTORY to values higher than what you anticipate for the rollout. 
+2. Set block size to the value used to develop the application.
+3. Set the minimal number of initialization parameters.
+4. Be prepared to manage block contention by setting storage options of database objects. Tables and indexes that experience high INSERT/UPDATE/DELETE rates should be created with automatic segment space management.
+5. All SQL statements should be verified to be optimal and their resource usage understood.
+6. Validate that middleware and programs that connect to the database are efficient in their connection management and do not logon or logoff repeatedly.
+7. Validate that the SQL statements use cursors efficiently. The database should parse each SQL statement once and then execute it multiple times. Hint bind variables. If you use precompilers to develop the application, then make sure to reset the parameters MAXOPENCURSORS, HOLD_CURSOR, and RELEASE_CURSOR from the default values before precompiling the application.
+8. Validate that all schema objects have been correctly migrated from the development
+environment to the production database.
+9. As soon as the system is rolled out, establish a baseline set of statistics from the database and operating system.
+10. Start anticipating the first bottleneck (which is inevitable) and follow the Oracle performance method to make performance improvement.
