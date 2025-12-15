@@ -1,0 +1,88 @@
+Oracle 19c PERFORMANCE MANAGEMENT AND TUNING:
+============================================
+
+CHAPTER #3: PERFORMANCE IMPROVEMENT METHODS
+-------------------------------------------
+
+The Oracle Performance Improvement Method:
+==========================================
+
+It is recommended that changes be made to a system only after you have confirmed that there is a bottleneck. Before looking at any database or operating system statistics, it is crucial to get feedback from the most important components of the system: the users of the system and the people ultimately paying for the application.
+The ultimate measure of success is the user's perception of system performance.
+
+Step in the Oracle Performance Improvement Method:
+==================================================
+
+1. Get candid feedback from users. Determine the performance project's scope and subsequent performance goals, and performance goals for the future.
+2. Get a full set of operating system, database, and application statistics from the system when the performance is both good and bad.
+3. List any over-used resources as symptoms for analysis later. In addition, check that all hardware shows no errors or diagnostics.
+4. Check for the top ten most common mistakes with Oracle Database, and determine if any of these are likely to be the problem. ADDM automatically detects and reports nine of these top ten issues.
+5. Build a conceptual model of what is happening on the system using the symptoms as clues to understand what caused the performance problems.
+6. Propose a series of remedy actions and the anticipated behavior to the system, then apply them in the order that can benefit the application the most.
+7. Validate that the changes made have had the desired effect, and see if the user's perception of performance has improved.
+8. Repeat the last three steps until performance goals are met or become impossible due to other constraints.
+
+A Sample Decision Process for Performance Conceptual Modeling:
+==============================================================
+
+ADDM automatically monitors your Oracle system and provides recommendations for solving performance problems should problems occur.
+
+Q1. Is the response time/batch run time acceptable for a single user on an empty or lightly loaded computer?
+	In this case, get application internal statistics, and get SQL Trace and SQL plan information. Work with developers to investigate problems in data, index, transaction SQL design, and potential deferral of work to batch and background processing.
+Q2. Is all the CPU being utilized?
+	If the kernel utilization is over 40%, then investigate the operating system for network transfers, paging, swapping, or process thrashing. Vverify if there are any non-database jobs consuming CPU on the system limiting the amount of shared CPU resources, such as backups, file transforms, print queues, and so on. Investigate the top SQL by CPU utilization. 
+	
+	High I/O? :> select * from v$sqlstats order by DISK_READS desc
+
+	High CPU? :> select * from v$sqlstats order by BUFFER_GETS desc
+
+	Poor parsing applications? :> select * from v$sqlstats order by PARSE_CALLS / EXECUTIONS
+
+	Memory hogs? :> select * from v$sqlstats order by SHARABLE_MEM desc
+
+
+Q3. At this point, the system performance is unsatisfactory, yet the CPU resources are not fully utilized. 
+	Get the WAIT_EVENTS statistics from the server, and determine the biggest serialization point. 
+
+Top Ten Mistakes Found in Oracle Systems:
+=========================================
+
+1. Bad connection management:
+	Incoming connections being pilled up.
+2. Bad use of cursors and the shared pool:
+	Not using cursors results in repeated parses. If bind variables are not used, then there is hard parsing of all SQL statements. 
+3. Bad SQL:
+	ADDM identifies high load SQL. SQL Tuning Advisorcan provide recommendations for improvement. Check the number of explain plan of the SQL ID, extract the SQLHC, fix the plan in the plan baseline, check the access advisor,check the tuning advisor. 
+4. Use of nonstandard initialization parameters:
+	Optimizer parameters set in the initialization parameter file can override proven optimal execution plans. For these reasons, schemas, schema statistics, and optimizer settings should be managed as a group to ensure consistency of performance.
+5. Getting database I/O wrong:
+	Many sites lay out their databases poorly over the available disks. Other sites specify the number of disks incorrectly, because they configure disks by disk space and not I/O bandwidth.
+6. Online redo log setup problems:
+	Many sites run with too few online redo log files and files that are too small. Small redo log files cause system checkpoints to continuously put a high load on the buffer cache and I/O system. If too few redo log files exist, then the archive cannot keep up, and the database must wait for the archiver to catch up.
+7. Serialization of data blocks:
+	Serialization of data blocks in the buffer cache due to lack of free lists, free list groups, transaction slots (!!INITRANS!!), or shortage of rollback segments.
+8. Long full table scans:
+	Long full table scans for high-volume or interactive online operations could indicate poor transaction design, missing indexes, or poor SQL optimization.
+9. High amounts of recursive (SYS) SQL:
+	Large amounts of recursive SQL executed by SYS could indicate space management activities, such as extent allocations, taking place.
+10. Deployment and migration errors:
+	In many cases, an application uses too many resources because the schema owning the tables has not been successfully migrated from the development environment or from an older implementation.
+
+Steps in the Emergency Performance Method:
+==========================================
+
+1. Survey the performance problem and collect the symptoms of the performance
+problem:
+	• User feedback on how the system is underperforming. Is the problem throughput or response time?
+	• Ask the question, "What has changed since we last had good performance?"
+	• Use automatic tuning features to diagnose and monitor the problem.
+2. 	Sanity-check the hardware utilization of all components of the application system. Check where the highest CPU utilization is, and check the disk, memory usage, and network performance on all the system components. This quick process identifies which tier is causing the problem.
+3. Determine if the database server is constrained on CPU or if it is spending time waiting on wait events. If the database server is CPU-constrained, then investigate the following:
+	• Sessions that are consuming large amounts of CPU at the operating system level and database; check V$SESS_TIME_MODEL for database CPU usage.
+	• Sessions or statements that perform many buffer gets at the database level; check V$SESSTAT and V$SQLSTATS.
+	• Execution plan changes causing sub-optimal SQL execution; these can be difficult to locate.
+	• Incorrect setting of initialization parameters.
+	• Algorithmic issues caused by code changes or upgrades of all components
+If the database sessions are waiting on events, then follow the wait events listed in V$SESSION_WAIT to determine what is causing serialization
+4. Apply emergency action to stabilize the system. This could involve actions that take parts of the application off-line or restrict the workload that can be applied to the system.
+5. Validate that the system is stable. Having made changes and restrictions to the system, validate that the system is now stable, and collect a reference set of statistics for the database.
