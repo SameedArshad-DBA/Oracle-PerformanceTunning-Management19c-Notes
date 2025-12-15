@@ -1,0 +1,88 @@
+Oracle 19c PERFORMANCE MANAGEMENT AND TUNING:
+============================================
+
+CHAPTER #4: CONFIGURING A DATABASE FOR PERFORMANCE
+--------------------------------------------------
+==============================================================
+Performance Considerations for Initial Instance Configuration:
+==============================================================
+
+The initial database instance configuration options that have important performance impact on the database are:
+• Initialization Parameters
+• Undo Space
+• Redo Log Files
+• Tablespaces
+
+Initialization Parameters:
+==========================
+These parameters influence the behavior of the running instance, including influencing performance.
+
+Parameters with no performance impact:
+DB_NAME, DB_DOMAIN, OPEN_CURSORS, CONTROL_FILES, DB_FILES
+
+Parameters with performance impact!!:
+
+COMPATIBLE : If your application was designed for a specific release of Oracle Database, and you are actually installing a later release, then you might want to set this parameter to the version of the previous release.
+
+DB_BLOCK_SIZE: Sets the size of the Oracle database blocks stored in the database files and cached in the SGA. The range of values depends on the operating system, but it is typically 8192 for transaction processing systems and higher values for database warehouse systems.
+
+SGA_TARGET: If SGA_TARGET is specified, then the buffer cache (DB_CACHE_SIZE), Java pool (JAVA_POOL_SIZE), large pool (LARGE_POOL_SIZE), and shared pool (SHARED_POOL_SIZE) memory pools are automatically sized.
+
+PGA_AGGREGATE_TARGET: Specifies the target aggregate PGA memory available to all server processes attached to the instance.
+
+PROCESSES: Sets the maximum number of processes that can be started by that instance.
+
+SESSIONS: This is set by default from the value of processes. However, if you are using the shared server, then the deduced value is likely to be insufficient.
+
+UNDO_MANAGEMENT: Specifies the undo space management mode used by the database. The default is AUTO. If unspecified, the database uses AUTO.
+
+UNDO_TABLESPACE: Specifies the undo tablespace to be used when an instance starts.
+
+UNDO SPACE:
+===========
+The database uses undo space to store data used for read consistency, recovery, and rollback statements. Undo management auto is recommended for daily operations and manual is used to backward compatibilty. 
+
+The V$UNDOSTAT view contains statistics for monitoring and tuning undo space. The V$ROLLSTAT view contains information about the behavior of the undo segments in the undo tablespace.
+
+Redo Log Files:
+===============
+The behavior of the database writer and archiver processes depend on the redo log sizes. The size of the redo log files does not affect LGWR performance, it can affect DBWR and checkpoint behavior. If the FAST_START_MTTR_TARGET parameter is set to limit the instance recovery time, Oracle Database automatically tries to checkpoint as frequently as necessary. Under this condition, the size of the log files should be large enough to avoid additional checkpointing due to under sized log files. 
+
+Tablespaces:
+============
+All databases should have several tablespaces in addition to the SYSTEM and SYSAUX tablespaces. These additional tablespaces include:
+• A temporary tablespace, which is used for operations such as sorting
+• An undo tablespace to contain information for read consistency, recovery, and undo statements
+• At least one tablespace for application use (in most cases, applications require several tablespaces)
+
+For permanent tables, the choice between local and global extent management on tablespace creation can greatly affect performance. For any permanent tablespace that has moderate to large insert, modify, or delete operations compared to reads, choose local extent management.
+
+Permanent Tablespaces - Automatic Segment-Space Management:
+For permanent tablespaces, Oracle recommends using automatic segment-space management. Such tablespaces, often referred to as bitmap tablespaces, are locally managed tablespaces with bitmap segment space management.
+
+Temporary Tablespaces:
+Properly configuring the temporary tablespace helps optimize disk sort performance. Temporary tablespaces can be dictionary-managed or locally managed. Oracle recommends the use of locally managed temporary tablespaces with a UNIFORM extent size of 1 MB.
+
+========================================================
+Creating and Maintaining Tables for Optimal Performance:
+========================================================
+
+Table Compression:
+==================
+Compressed data in a database block is self-contained, which means that all information needed to re-create the uncompressed data in a block is available within the block. Performance improvements are accomplished by reducing the amount of necessary I/O operations for accessing a table and by increasing the probability of buffer cache hits.
+
+Estimating the Compression Factor: Duplicate values in all the rows and columns in a block are stored once at the beginning of the block, in what is called a symbol table for that block. All occurences are replaced with a short reference to the symbol table. 
+Compression factor= number of blocks necessary to store the information in uncompressed form divided by the number of blocks necessary for a compressed storage.
+
+Tuning to Achieve a Better Compression Ratio: Oracle Database achieves a good compression factor in many cases with no special tuning. To improve the compression factor you must increase the likelihood of value repetitions within a data block. Table compression not only compresses duplicate values of a single column but tries to use multi-column value pairs whenever possible.
+
+Using Attribute-Clustered Tables: An attribute-clustered table is a heap-organized table that stores data in close proximity on disk based on user-specified clustering directives. The directives determine if the data stored in a table is ordered based on specified columns, or on a special algorithm that permits multicolumn I/O reduction. Attribute clustering is only available for bulk insert operations— such as the INSERT/*+APPEND*/ or ALTER TABLE ... MOVE PARTITION commands—and is ignored for conventional DML. By reducing physical I/O in conjunction with zone maps, using attribute-clustered tables can significant reduce the I/O costs of table scans. 
+Zone maps in an Oracle Database store minimum and maximum values of columns for a range of blocks (known as a zone).
+
+Reclaiming Unused Space:
+========================
+It is common for segment space to become fragmented or for a segment to acquire a lot of free space as the result of update and delete operations. If an object does have space available for reclamation, then you can compact and shrink segments or deallocate unused space at the end of a segment. 
+
+Indexing Data:
+==============
+During index creation on tables that contain data, the data must be sorted. This sorting is done in the fastest possible way, if all available memory is used for sorting. Oracle recommends that you enable automatic sizing of SQL working areas by setting the PGA_AGGREGATE_TARGET initialization parameter.
