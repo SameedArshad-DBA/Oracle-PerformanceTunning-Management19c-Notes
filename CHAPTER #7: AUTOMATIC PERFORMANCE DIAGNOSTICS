@@ -1,0 +1,144 @@
+Oracle 19c PERFORMANCE MANAGEMENT AND TUNING:
+============================================
+
+CHAPTER #7: AUTOMATIC PERFORMANCE DIAGNOSTICS
+---------------------------------------------
+=====================================================
+Overview of the Automatic Database Diagnostic Monitor
+=====================================================
+The Automatic Database Diagnostic Monitor (ADDM) is a diagnostic tool that analyzes the AWR data on a regular basis, locates root causes of any performance problems, provides recommendations for correcting the problems, and identifies non-problem areas of the system.
+
+ADDM output should be the first place that a DBA looks when notified of a performance problem.
+ADDM benefits:
+• Automatic performance diagnostic report every hour by default.
+• Problem diagnosis based on decades of tuning expertise.
+• Time-based quantification of problem impacts and recommendation benefits.
+• Identification of root cause, not symptoms.
+• Recommendations for treating the root causes of problems.
+• Identification of non-problem areas of the system.
+• Minimal overhead to the system during the diagnostic process.
+
+
+ADDM Analysis
+-------------
+ADDM has three analysis modes: Database (all instances), Instance (speific instance), and Partial (subset of all database instances)
+In non-RAC only instance mode can be used.
+ADDM analysis is performed top down, first identifying symptoms, and then refining them to reach the root causes of performance problems. The goal of the analysis is to reduce a single throughput metric called DBtime. DBtime is the fundamental measure of database performance, and is the cumulative time spent by the database in processing user requests.
+By reducing the DBTime, the database is able to support more user requests using the same resources, which increases throughput. The problems reported by ADDM are sorted by the amount of DBTime they are responsible for.
+The types of problems that ADDM considers include the following:
+• CPU bottlenecks - Is the system CPU bound by Oracle Database or some other application?
+• Undersized Memory Structures - Are the Oracle Database memory structures, such as the SGA, PGA, and buffer cache, adequately sized?
+• I/O capacity issues - Is the I/O subsystem performing as expected?
+• High-load SQL statements - Are there any SQL statements which are consuming excessive system resources?
+• High-load PL/SQL execution and compilation, and high-load Java usage
+• Oracle RAC specific issues - What are the global cache hot blocks and objects; are there any interconnect latency issues?
+• Sub-optimal use of Oracle Database by the application - Are there problems with poor connection management, excessive parsing, or application level lock contention?
+• Database configuration issues - Is there evidence of incorrect sizing of log files, archiving issues, excessive checkpoints, or sub-optimal parameter settings?
+• Concurrency issues - Are there buffer busy problems?
+• Hot objects and top SQL for various problem areas
+
+Using ADDM with Oracle Real Application Clusters
+------------------------------------------------
+If you are using Oracle RAC, then run ADDM in Database analysis mode to analyze the throughput performance of all instances of the database. Using the Database analysis mode enables you to view all findings that are significant to the entire database in a single report, instead of reviewing a separate report for each instance.  If the CPU load on a single instance is high enough to affect the entire database, then the finding appears in the Database mode analysis, which points to the particular instance responsible for the problem.
+
+Using ADDM in a Multitenant Environment
+---------------------------------------
+ADDM is enabled by default in the root container of a multitenant container database (CDB).  Oracle Database 19c, you can also use ADDM in a pluggable database (PDB). ADDM does not work in a PDB by default, because automatic AWR snapshots are disabled by default in a PDB. To use ADDM in a PDB, you must enable automatic AWR snapshots in the PDB. 
+A user whose current container is the CDB root can view ADDM results for the entire CDB. The ADDM results can include information about multiple PDBs. The ADDM results stored on the CDB root cannot be viewed when the current container is a PDB.
+ADDM results on a PDB provide only PDB-specific findings and recommendations. A user whose current container is a PDB can view ADDM results for the current PDB only. The ADDM results exclude findings that apply to the CDB as a whole, for example, I/O problems relating to the buffer cache size.
+ADDM does not report the following issues in a PDB, because these issues apply to a CDB as a whole and do not apply to an individual PDB: I/O problems,SQL hard parsing, SGA sizing issues,Cluster messaging related issues, such as network latency, congestion, contention, and lost blocks,Log file switch waits on archiving and on checkpoint incomplete, Too many free-buffer waits, Contention on log buffer waits, Waits due to CPU bottleneck, Operating system VM paging, Session slot wait event, CPU quantum wait event,RMAN related wait events, such as PQ queued wait event, PGA limit wait event, and I/O queue wait event.
+
+!! Enabling ADDM in a Pluggable Database !!
+1. Set the AWR_PDB_AUTOFLUSH_ENABLED initialization parameter to TRUE in the PDB:
+	SQL> ALTER SYSTEM SET AWR_PDB_AUTOFLUSH_ENABLED=TRUE;
+	
+2.  Set the AWR snapshot interval greater than 0 in the PDB using the command as shown in the following example: 
+	SQL> EXEC dbms_workload_repository.modify_snapshot_settings(interval=>60);
+	
+
+Real-Time ADDM Analysis
+-----------------------
+Introduced in Oracle Enterprise Manager Cloud Control (Cloud Control) 12c. ADDM helps you to analyze and resolve problems in unresponsive or hung databases that traditionally require you to restart the database.
+Real-Time ADDM Connection Modes: Normal Connection (This mode is intended to perform extensive performance analysis) Diagnostic connection (Real-Time ADDM performs a latch-less connection to the database. This mode is intended for extreme hang situations when a normal JDBC connection is not possible.)
+Real-Time ADDM Triggers: 
+1. Every 3 seconds, the manageability monitor process (MMON) performs an action to obtain performance statistics without lock or latch.
+2. The MMON process checks these statistics and triggers a Real-Time ADDM analysis if any of the issues listed in below Table are detected.
+3. The MMON slave process creates the report and stores it in the AWR.
+(High load,I/O bound , CPU bound,Over-allocated memory,Interconnect bound,Session limit,Process limit,Hung session,Deadlock detected.)
+Real-Time ADDM Trigger Controls: 
+Duration between reports=If a Real-Time ADDM report was created in the past 5 minutes by the automatic trigger, then no new reports will be generated.
+Oracle RAC control=  For Oracle RAC, only one database instance can create a Real-Time ADDM report at a given time because a lock is required and a query is performed by the MMON slave process.
+Repeated triggers= An automatic trigger for any issue must have an impact of 100% or higher than the previous report with the same triggering issue within the past 45 minutes.
+Newly identified issues= If a new issue is detected (that was not previously detected within the past 45 minutes), then a new report is generated.
+
+ADDM Analysis Results
+---------------------
+Each problem finding is quantified by an impact that is an estimate of the portion of DBtime caused by the finding's performance issue.  you do not have to apply all the recommendations to solve a specific problem.
+
+
+===============
+Setting Up ADDM
+===============
+The control_management_pack_access parameter should be set to DIAGNOSTIC or DIAGNOSTIC+TUNING
+to enable automatic database diagnostic monitoring. 
+The STATISTICS_LEVEL parameter should be set to the TYPICAL or ALL to enable automatic database diagnostic monitoring. The deafult setting is TYPICAL.
+ADDM analysis of I/O performance partially depends on a single argument, DBIO_EXPECTED that describes the expected performance of the I/O subsystem. The value of  , DBIO_EXPECTED is the average time it takes to read a single database block in microseconds. Oracle Database uses the default value of 10 milliseconds, which is an appropriate value for most modern hard drives. If your hardware is significantly different—such as very old hardware or very fast RAM disks—then consider using a different value.
+To determine the correct setting for the DBIO_EXPECTED parameter:
+1. Measure the average read time of a single database block read for your hardware.
+Note that this measurement is for random I/O, which includes seek time if you use standard hard drives. Typical values for hard drives are between 5000 and 20000 microseconds.
+2. Set the value one time for all subsequent ADDM executions.
+For example, if the measured value if 8000 microseconds, you should execute the following command as SYS user:
+	EXECUTE DBMS_ADVISOR.SET_DEFAULT_TASK_PARAMETER(
+                     'ADDM', 'DBIO_EXPECTED', 8000);
+
+==================================================
+Diagnosing Database Performance Problems with ADDM
+==================================================
+Running ADDM in Database Mode:
+BEGIN
+DBMS_ADDM.ANALYZE_DB (
+   task_name           IN OUT VARCHAR2,
+   begin_snapshot      IN     NUMBER,
+   end_snapshot        IN     NUMBER,
+   db_id               IN     NUMBER := NULL);
+END;
+/
+
+Running ADDM in Instance Mode:
+BEGIN
+DBMS_ADDM.ANALYZE_INST (
+   task_name           IN OUT VARCHAR2,
+   begin_snapshot      IN     NUMBER,
+   end_snapshot        IN     NUMBER,
+   instance_number     IN     NUMBER := NULL,
+   db_id               IN     NUMBER := NULL);
+END;
+/
+
+Running ADDM in Partial Mode:
+BEGIN
+DBMS_ADDM.ANALYZE_PARTIAL (
+   task_name           IN OUT VARCHAR2,
+   instance_numbers    IN     VARCHAR2,
+   begin_snapshot      IN     NUMBER,
+   end_snapshot        IN     NUMBER,
+   db_id               IN     NUMBER := NULL);
+END;
+/
+
+Displaying an ADDM Report:
+DBMS_ADDM.GET_REPORT (
+   task_name           IN VARCHAR2
+  RETURN CLOB);
+  
+ SET LONG 1000000 PAGESIZE 0;
+SELECT DBMS_ADDM.GET_REPORT(:tname) FROM DUAL;
+
+==========
+ADDM Views
+==========
+DBA_ADVISOR_FINDINGS: displays all the findings discovered by all advisors.
+DBA_ADDM_FINDINGS: view contains a subset of the findings displayed.
+DBA_ADVISOR_FINDING_NAMES: view lists all finding names registered with the advisor framework.
+DBA_ADVISOR_RECOMMENDATIONS: This view displays the results of completed diagnostic tasks with recommendations for the problems identified in each execution.
+DBA_ADVISOR_TASKS: This view provides basic information about existing tasks, such as the task ID, task name, and when the task was created. 
