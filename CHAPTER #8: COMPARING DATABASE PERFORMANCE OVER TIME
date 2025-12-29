@@ -1,0 +1,142 @@
+Oracle 19c PERFORMANCE MANAGEMENT AND TUNING:
+============================================
+
+CHAPTER #8: COMPARING DATABASE PERFORMANCE OVER TIME
+----------------------------------------------------
+===========================================================
+About Automatic Workload Repository Compare Periods Reports
+===========================================================
+Performance degradation of the database occurs when your database was performing optimally in the past, but has over time gradually degraded to a point where it becomes noticeable to the users. AWR Compare Periods report enables you to compare database performance over time.An AWR report shows AWR data during a period in time between two snapshots (or two points in time). 
+
+================================================================
+Generating Automatic Workload Repository Compare Periods Reports
+================================================================
+Generating an AWR Compare Periods Report for the Local Database:
+----------------------------------------------------------------
+1. At the SQL prompt, enter:
+	@$ORACLE_HOME/rdbms/admin/awrddrpt.sql
+2. Specify whether you want an HTML or a text report:
+	Enter value for report_type: html
+3. Specify the number of days for which you want to list snapshot IDs in the first time period.
+	Enter value for num_days: 2
+4. Specify a beginning and ending snapshot ID for the first time period:
+	Enter value for begin_snap: 102
+	Enter value for end_snap: 103
+5. Specify the number of days for which you want to list snapshot IDs in the second time period.
+	Enter value for num_days2: 1	
+6. Specify a beginning and ending snapshot ID for the second time period:
+	Enter value for begin_snap2: 126
+	Enter value for end_snap2: 127
+7. Enter a report name, or accept the default report name:
+	Enter value for report_name: 
+	Using the report name awrdiff_1_102_1_126.txt
+
+Generating an AWR Compare Periods Report for a Specific Database:
+-----------------------------------------------------------------
+1. At the SQL prompt, enter:
+	@$ORACLE_HOME/rdbms/admin/awrddrpi.sql
+2. Specify whether you want an HTML or a text report:
+	Enter value for report_type: text
+3. A list of available database identifiers and instance numbers are displayed:
+	Instances in this Workload Repository schema
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		DB Id    Inst Num DB Name      Instance     Host
+	----------- -------- ------------ ------------ -----------
+	3309173529        1 MAIN         main         examp1690
+	3309173529        1 TINT251      tint251      samp251
+	
+	Enter the values for the database identifier (dbid) and instance number (inst_num) for the first time period:
+		Enter value for dbid: 3309173529
+		Using 3309173529 for Database Id for the first pair of snapshots
+		Enter value for inst_num: 1
+		Using 1 for Instance Number for the first pair of snapshots
+4. Specify the number of days for which you want to list snapshot IDs in the first time period.
+	Enter value for num_days: 2		
+5. Specify a beginning and ending snapshot ID for the first time period:
+	Enter value for begin_snap: 102
+	Enter value for end_snap: 103
+6. Enter the values for the database identifier (dbid) and instance number (inst_num) for the first time period:
+	Enter value for dbid2: 3309173529
+	Using 3309173529 for Database Id for the second pair of snapshots
+	Enter value for inst_num2: 1
+	Using 1 for Instance Number for the second pair of snapshots
+7. Specify the number of days for which you want to list snapshot IDs in the second time period.
+	Enter value for num_days2: 1
+8. Specify a beginning and ending snapshot ID for the second time period:
+	Enter value for begin_snap2: 126
+	Enter value for end_snap2: 127
+9. Enter a report name, or accept the default report name:
+	Enter value for report_name: 
+	Using the report name awrdiff_1_102_1_126.txt
+	
+Generating an Oracle RAC AWR Compare Periods Report for the Local Database:
+---------------------------------------------------------------------------
+1. At the SQL prompt, enter:
+	@$ORACLE_HOME/rdbms/admin/awrgdrpt.sql
+2. Specify whether you want an HTML or a text report:
+	Enter value for report_type: html
+3. Specify the number of days for which you want to list snapshot IDs in the first time period.
+	Enter value for num_days: 2
+4. Specify a beginning and ending snapshot ID for the first time period:
+	Enter value for begin_snap: 102
+	Enter value for end_snap: 103
+5. Specify the number of days for which you want to list snapshot IDs in the second time period.
+	Enter value for num_days2: 1
+6. Specify a beginning and ending snapshot ID for the second time period:
+	Enter value for begin_snap2: 126
+	Enter value for end_snap2: 127
+7. Enter a report name, or accept the default report name:
+	Enter value for report_name: 
+	Using the report name awrracdiff_1st_1_2nd_1.html
+	
+Generating an Oracle RAC AWR Compare Periods Report for a Specific Database
+---------------------------------------------------------------------------
+1. At the SQL prompt, enter:
+	@$ORACLE_HOME/rdbms/admin/awrgdrpi.sql
+2. Specify whether you want an HTML or a text report:
+	Enter value for report_type: html
+3. A list of available database identifiers and instance numbers are displayed:
+Instances in this Workload Repository schema
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	  DB Id    Inst Num DB Name      Instance     Host
+   ----------- -------- ------------ ------------ -----------
+	3309173529        1 MAIN         main         examp1690
+	3309173529        1 TINT251      tint251      samp251
+	3309173529        2 TINT251      tint252      samp252
+	3309173529        3 TINT251      tint253      samp253
+	3309173529        4 TINT251      tint254      samp254
+	Enter the values for the database identifier (dbid) and instance number (inst_num) for the first time period:
+	Enter value for dbid: 3309173529
+	Using 3309173529 for Database Id for the first pair of snapshots
+	Enter value for inst_num: 1,2
+	Using instances 1 for the first pair of snapshots
+4. Specify the number of days for which you want to list snapshot IDs in the first time period.
+	Enter value for num_days: 2
+5. Specify a beginning and ending snapshot ID for the first time period:
+	Enter value for begin_snap: 102
+	Enter value for end_snap: 103
+6. A list of available database identifiers and instance numbers are displayed:
+Instances in this Workload Repository schema
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  DB Id      Inst Num  DB Name      Instance     Host
+ ----------- -------- ------------ ------------ -----------
+ 3309173529        1 MAIN         main         examp1690
+ 3309173529        1 TINT251      tint251      samp251
+ 3309173529        2 TINT251      tint252      samp252
+ 3309173529        3 TINT251      tint253      samp253
+ 3309173529        4 TINT251      tint254      samp254
+INSTNUM1
+----------------------------------------------------
+1,2
+	Enter value for dbid2: 3309173529
+	Using 3309173529 for Database Id for the second pair of snapshots
+	Enter value for instance_numbers_or_all2: 3,4
+7. Specify the number of days for which you want to list snapshot IDs in the second
+time period.
+	Enter value for num_days2: 1
+8. Specify a beginning and ending snapshot ID for the second time period:
+	Enter value for begin_snap2: 126
+	Enter value for end_snap2: 127
+9. Enter a report name, or accept the default report name:
+Enter value for report_name: 
+	Using the report name awrracdiff_1st_1_2nd_1.html
