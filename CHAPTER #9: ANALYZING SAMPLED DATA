@@ -1,0 +1,109 @@
+Oracle 19c PERFORMANCE MANAGEMENT AND TUNING:
+============================================
+
+CHAPTER #9: ANALYZING SAMPLED DATA
+----------------------------------
+============================
+About Active Session History
+============================
+The ASH diagnostic tool captures transient performance problems by taking samples of active sessions every second and storing the sampled data in a circular buffer in the shared global area (SGA). Any session that is connected to the database and is waiting for an event that does not belong to the Idle wait class is considered as an active session. 
+ADDM tries to report the most significant performance problems during an analysis period in terms of their impact on DB time. If a performance problem lasts for a significant portion of the time between snapshots, it will be captured by ADDM. 
+
+Generating an ASH Report on the Local Database Instance:
+========================================================
+1. At the SQL prompt, enter:
+	@$ORACLE_HOME/rdbms/admin/ashrpt.sql
+2. Specify whether you want an HTML or a text report:
+	Enter value for report_type: text
+3. Specify the begin time in minutes before the system date: 
+	Enter value for begin_time: -10
+4. Specify the duration to capture ASH information in minutes from the begin time.
+	Enter value for duration:
+5. Enter a report name, or accept the default report name:
+	Enter value for report_name: 
+	Using the report name ashrpt_1_0310_0131.txt
+
+Generating an ASH Report on a Specific Database Instance:
+=========================================================
+1. At the SQL prompt, enter:
+	@$ORACLE_HOME/rdbms/admin/ashrpti.sql
+2. Specify whether you want an HTML or a text report:
+	Enter value for report_type: html
+	Instances in this Workload Repository schema
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   DB Id    Inst Num DB Name      Instance     Host
+   ----------- -------- ------------ ------------ -----------
+   3309173529        1 MAIN         main         examp1690
+   3309173529        1 TINT251      tint251      samp251
+3. Enter the values for the database identifier dbid and inst_num:
+	Enter value for dbid: 3309173529
+	Using 3309173529 for database id
+	Enter value for inst_num: 1
+4. To generate an ASH report on a physical standby instance, the standby databasemust be opened read-only. The ASH data on disk represents activity on the primary database and the ASH data in memory represents activity on the standby database.
+	You are running ASH report on a Standby database.
+	To generate the report over data sampled on the Primary database, enter 'P'.
+	Defaults to 'S' - data sampled in the Standby database.
+	Enter value for stdbyflag:
+	Using Primary (P) or Standby (S): S
+5. Specify the begin time in minutes before the system date:
+	Enter value for begin_time: -10
+6. Specify the duration to capture ASH information in minutes from the begin time.
+	Enter value for duration:
+7. Specify the slot width in seconds that will be used in the Activity Over Time section of the report: 
+	Enter value for slot_width:
+ Follow the instructions in the subsequent prompts and enter values for the following
+report targets:
+	. target_session_id
+	. target_sql_id
+	. target_wait_class
+	. target_service_hash
+	. target_module_name
+	. target_action_name
+	. target_client_id
+	. target_plsql_entry
+9. Enter a report name, or accept the default report name:
+	Enter value for report_name: 
+	Using the report name ashrpt_1_0310_0131.txt
+
+Generating an ASH Report for Oracle RAC:
+========================================
+1. At the SQL prompt, enter:
+	@$ORACLE_HOME/rdbms/admin/ashrpti.sql
+2. Specify whether you want an HTML or a text report:
+	Enter value for report_type: html
+A list of available database IDs and instance numbers are displayed:
+Instances in this Workload Repository schema
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       DB Id    Inst Num DB Name      Instance     Host
+   ----------- -------- ------------ ------------ -----------
+	3309173529        1 MAIN         main         examp1690
+	3309173529        1 TINT251      tint251      samp251
+	3309173529        2 TINT251      tint252      samp252
+	3309173529        3 TINT251      tint253      samp253
+	3309173529        4 TINT251      tint254      samp254
+3. Enter the values for the database identifier dbid and inst_num:
+	Enter value for dbid: 3309173529
+	Using database id: 3309173529
+	Enter instance numbers. Enter 'ALL' for all instances in an Oracle
+	RAC cluster or explicitly specify list of instances (e.g., 1,2,3).
+	Defaults to current instance.
+	Enter value for inst_num: ALL
+	Using instance number(s): ALL
+4. Specify the begin time in minutes before the system date:
+	Enter value for begin_time: -1:10
+5. Specify the duration to capture ASH information in minutes from the begin time.
+	Enter value for duration: 10
+6. Specify the slot width in seconds that will be used in the Activity Over Time section of the report:
+	Enter value for slot_width:	
+7. Follow the instructions in the subsequent prompts and enter values for the following report targets:
+	. target_session_id
+	. target_sql_id
+	. target_wait_class
+	. target_service_hash
+	. target_module_name
+	. target_action_name
+	. target_client_id
+	. target_plsql_entry
+8. Enter a report name, or accept the default report name:
+	Enter value for report_name: 
+	Using the report name ashrpt_rac_0310_0131.txt
